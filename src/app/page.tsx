@@ -2,7 +2,7 @@
 import AppHeader from '@/components/AppHeader';
 import MatchList from '@/components/MatchList';
 import { fetchPremierLeagueMatches, fetchTeamLogo } from '@/lib/api';
-import type { MatchData, OpenLigaDBMatch, ProcessedTeam, TeamLogoMap } from '@/types';
+import type { MatchData, OpenLigaDBMatch, ProcessedTeam, TeamLogoMap, GoalData } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, CalendarX2 } from "lucide-react";
 
@@ -41,21 +41,20 @@ async function getMatchDataWithLogos(): Promise<MatchData[]> {
     };
     
     let score;
-    // Use current score if available and match not finished, otherwise final score
-    const currentResult = match.matchResults.find(r => r.resultName === "Halbzeit" || r.resultName === "Zwischenstand"); // Example, adjust if API provides better current score
+    const currentResult = match.matchResults.find(r => r.resultName === "Halbzeit" || r.resultName === "Zwischenstand");
     const finalResult = match.matchResults.find(r => r.resultName === "Endergebnis" || match.matchIsFinished);
 
-    if (match.isFinished && finalResult) {
+    if (match.matchIsFinished && finalResult) {
       score = {
         team1: finalResult.pointsTeam1,
         team2: finalResult.pointsTeam2,
       };
-    } else if (!match.isFinished && currentResult) {
+    } else if (!match.matchIsFinished && currentResult) {
        score = {
         team1: currentResult.pointsTeam1,
         team2: currentResult.pointsTeam2,
       };
-    } else if (match.goals.length > 0) { // Fallback to latest goal if no explicit current/final result
+    } else if (match.goals.length > 0) { 
         const lastGoal = match.goals[match.goals.length - 1];
         score = {
             team1: lastGoal.scoreTeam1,
@@ -63,13 +62,14 @@ async function getMatchDataWithLogos(): Promise<MatchData[]> {
         };
     }
 
-
     return {
       id: match.matchID,
       dateTimeUTC: match.matchDateTimeUTC,
       team1,
       team2,
       leagueName: match.leagueName,
+      leagueSeason: match.leagueSeason,
+      groupName: match.group?.groupName,
       isFinished: match.matchIsFinished,
       score,
       goals: match.goals.map(g => ({
@@ -77,7 +77,12 @@ async function getMatchDataWithLogos(): Promise<MatchData[]> {
         scoreTeam2: g.scoreTeam2,
         goalGetterName: g.goalGetterName,
         matchMinute: g.matchMinute,
-      })).sort((a,b) => (a.matchMinute || 0) - (b.matchMinute || 0)), // Sort goals by minute
+        comment: g.comment,
+      })).sort((a,b) => (a.matchMinute || 0) - (b.matchMinute || 0)),
+      locationCity: match.location?.locationCity,
+      locationStadium: match.location?.locationStadium,
+      numberOfViewers: match.numberOfViewers,
+      lastUpdateDateTime: match.lastUpdateDateTime,
     };
   }).sort((a, b) => new Date(a.dateTimeUTC).getTime() - new Date(b.dateTimeUTC).getTime());
 }
@@ -104,7 +109,6 @@ export default async function HomePage() {
               <AlertTitle>Error Fetching Match Data</AlertTitle>
               <AlertDescription>
                 There was a problem loading the match schedule from the source. Please try again later.
-                (Currently using mock data, so this error state is unlikely unless mock data source fails).
               </AlertDescription>
             </Alert>
           </div>
@@ -115,7 +119,7 @@ export default async function HomePage() {
                 <h2 className="text-2xl font-semibold text-card-foreground mb-2">No Matches Found</h2>
                 <p className="text-md">
                   It seems there are no Premier League matches scheduled or the data is currently unavailable. 
-                  Please check back later! (Note: App is currently using mock data.)
+                  Please check back later!
                 </p>
              </div>
            </div>
@@ -124,11 +128,10 @@ export default async function HomePage() {
         )}
       </main>
       <footer className="py-6 text-center text-muted-foreground text-sm border-t border-border">
-        GoalWatch &copy; {new Date().getFullYear()} - Match data (currently mocked) powered by OpenLigaDB & TheSportsDB.
+        GoalWatch &copy; {new Date().getFullYear()} - Match data powered by OpenLigaDB & TheSportsDB.
       </footer>
     </div>
   );
 }
 
-// Revalidate data periodically, e.g., every hour (less critical with mock data)
-export const revalidate = 3600;
+export const revalidate = 3600; // Revalidate data periodically

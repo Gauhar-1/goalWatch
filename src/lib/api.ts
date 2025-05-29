@@ -26,7 +26,7 @@ const createMockApiTeam = (teamInfo: MockTeamInfo): ApiOpenLigaDBTeam => ({
   teamName: teamInfo.name,
   shortName: teamInfo.shortName,
   teamIconUrl: teamInfo.apiTeamIconUrl,
-  teamGroupName: null, // Added as per new schema
+  teamGroupName: null,
 });
 
 const defaultGroupInfo: OpenLigaDBGroupInfo = {
@@ -40,12 +40,12 @@ const currentYear = new Date().getFullYear();
 const mockMatches: OpenLigaDBMatch[] = [
   {
     matchID: 101,
-    matchDateTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toLocaleString('sv-SE', { timeZone: 'Europe/Berlin' }).replace(' ', 'T'), // Local time for display
-    timeZoneID: "W. Europe Standard Time", // Example timezone
-    leagueId: 468, // Mock Premier League ID
+    matchDateTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toLocaleString('sv-SE', { timeZone: 'Europe/Berlin' }).replace(' ', 'T'), 
+    timeZoneID: "W. Europe Standard Time", 
+    leagueId: 468, 
     leagueName: "Premier League (Mock Data)",
     leagueSeason: currentYear, 
-    leagueShortcut: "gb1mock", // Mock shortcut
+    leagueShortcut: "gb1mock", 
     matchDateTimeUTC: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
     group: defaultGroupInfo,
     team1: createMockApiTeam(mockTeamData["Arsenal FC"]),
@@ -54,8 +54,8 @@ const mockMatches: OpenLigaDBMatch[] = [
     matchIsFinished: false,
     matchResults: [],
     goals: [],
-    location: null,
-    numberOfViewers: null,
+    location: { locationCity: "London", locationStadium: "Emirates Stadium (Mock)"},
+    numberOfViewers: 60000,
   },
   {
     matchID: 102,
@@ -66,10 +66,10 @@ const mockMatches: OpenLigaDBMatch[] = [
     leagueSeason: currentYear,
     leagueShortcut: "gb1mock",
     matchDateTimeUTC: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    group: defaultGroupInfo,
+    group: {...defaultGroupInfo, groupName: "Matchday 15"},
     team1: createMockApiTeam(mockTeamData["Liverpool FC"]),
     team2: createMockApiTeam(mockTeamData["Chelsea FC"]),
-    lastUpdateDateTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(), // Finished 2 hours after start
+    lastUpdateDateTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(), 
     matchIsFinished: true,
     matchResults: [{ 
       resultID: 201, 
@@ -77,15 +77,15 @@ const mockMatches: OpenLigaDBMatch[] = [
       pointsTeam2: 1, 
       resultName: "Endergebnis", 
       resultOrderID: 1, 
-      resultTypeID: 2, // Standard game result type from OpenLigaDB
+      resultTypeID: 2, 
       resultDescription: "Result after 90 minutes" 
     }],
     goals: [
-      { goalID: 301, scoreTeam1: 1, scoreTeam2: 0, goalGetterName: "L. Diaz (LIV)", matchMinute: 25 },
+      { goalID: 301, scoreTeam1: 1, scoreTeam2: 0, goalGetterName: "L. Diaz (LIV)", matchMinute: 25, comment: "Screamer from outside the box!" },
       { goalID: 302, scoreTeam1: 1, scoreTeam2: 1, goalGetterName: "C. Palmer (CHE)", matchMinute: 55 },
-      { goalID: 303, scoreTeam1: 2, scoreTeam2: 1, goalGetterName: "M. Salah (LIV)", matchMinute: 78 },
+      { goalID: 303, scoreTeam1: 2, scoreTeam2: 1, goalGetterName: "M. Salah (LIV)", matchMinute: 78, comment: "Clinical finish" },
     ],
-    location: null,
+    location: { locationCity: "Liverpool", locationStadium: "Anfield (Mock)"},
     numberOfViewers: 55000,
   },
   {
@@ -97,7 +97,7 @@ const mockMatches: OpenLigaDBMatch[] = [
     leagueSeason: currentYear,
     leagueShortcut: "gb1mock",
     matchDateTimeUTC: new Date(Date.now() - 30 * 60 * 1000).toISOString(), 
-    group: defaultGroupInfo,
+    group: {...defaultGroupInfo, groupName: "Matchday 16"},
     team1: createMockApiTeam(mockTeamData["Manchester United"]),
     team2: createMockApiTeam(mockTeamData["Tottenham Hotspur"]),
     lastUpdateDateTime: new Date().toISOString(),
@@ -108,11 +108,11 @@ const mockMatches: OpenLigaDBMatch[] = [
       pointsTeam2: 0, 
       resultName: "Halbzeit", 
       resultOrderID: 1, 
-      resultTypeID: 1, // halftime result type
+      resultTypeID: 1, 
       resultDescription: "Result at halftime"
     }],
     goals: [
-      { goalID: 304, scoreTeam1: 1, scoreTeam2: 0, goalGetterName: "M. Rashford (MUN)", matchMinute: 15 },
+      { goalID: 304, scoreTeam1: 1, scoreTeam2: 0, goalGetterName: "M. Rashford (MUN)", matchMinute: 15, comment: "Header from a corner" },
     ],
     location: { locationCity: "Manchester", locationStadium: "Old Trafford (Mock)"},
     numberOfViewers: 70000,
@@ -198,14 +198,12 @@ export async function fetchSpecificLeagueRoundMatches(
     const response = await fetch(`${OPENLIGADB_API_BASE}/getmatchdata/${leagueShortcut}/${season}/${groupOrderID}`);
     if (!response.ok) {
       console.error(`Error fetching specific league round matches (${leagueShortcut}/${season}/${groupOrderID}): ${response.status} ${response.statusText}`);
-      // Consider throwing an error or returning a specific error object/empty array
       return []; 
     }
     const data: OpenLigaDBMatch[] = await response.json();
     return data;
   } catch (error) {
     console.error(`Failed to fetch specific league round matches (${leagueShortcut}/${season}/${groupOrderID}):`, error);
-    // Depending on error handling strategy, re-throw, return empty array, or a custom error object
     return [];
   }
 }

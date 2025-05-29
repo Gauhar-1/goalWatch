@@ -32,7 +32,7 @@ export interface OpenLigaDBTeam {
   teamName: string;
   shortName: string;
   teamIconUrl: string | null;
-  teamGroupName: string | null; // New field
+  teamGroupName: string | null;
 }
 
 // Updated types for OpenLigaDB API Match
@@ -82,24 +82,34 @@ export interface ProcessedTeam {
   logoUrl?: string; // Will be populated from TheSportsDB or teamIconUrl
 }
 
+export interface GoalData {
+  scoreTeam1: number;
+  scoreTeam2: number;
+  goalGetterName: string;
+  matchMinute: number | null;
+  comment?: string; // Added comment
+}
+
 export interface MatchData {
   id: number;
   dateTimeUTC: string;
   team1: ProcessedTeam;
   team2: ProcessedTeam;
   leagueName: string;
+  leagueSeason?: number;
+  groupName?: string;
   isFinished: boolean;
   score?: {
     team1: number;
     team2: number;
   };
-  goals: {
-    scoreTeam1: number;
-    scoreTeam2: number;
-    goalGetterName: string;
-    matchMinute: number | null;
-  }[];
+  goals: GoalData[];
+  locationCity?: string;
+  locationStadium?: string;
+  numberOfViewers?: number | null;
+  lastUpdateDateTime?: string;
 }
+
 
 export interface TeamLogoMap {
   [teamName: string]: string | undefined;
