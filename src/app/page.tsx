@@ -2,12 +2,12 @@
 import AppHeader from '@/components/AppHeader';
 import MatchList from '@/components/MatchList';
 import { fetchSpecificLeagueRoundMatches, fetchTeamLogo } from '@/lib/api';
-import type { MatchData, OpenLigaDBMatch, ProcessedTeam, TeamLogoMap, GoalData } from '@/types';
+import type { MatchData, OpenLigaDBMatch, ProcessedTeam, TeamLogoMap } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, CalendarX2 } from "lucide-react";
 
 async function getMatchDataWithLogos(): Promise<MatchData[]> {
-  const rawMatches = await fetchSpecificLeagueRoundMatches("bl1", "2023",15);
+  const rawMatches = await fetchSpecificLeagueRoundMatches("bl1", "2023", 15);
   if (!rawMatches || rawMatches.length === 0) {
     return [];
   }
@@ -29,14 +29,17 @@ async function getMatchDataWithLogos(): Promise<MatchData[]> {
   }, {} as TeamLogoMap);
 
   return rawMatches.map((match: OpenLigaDBMatch): MatchData => {
+    const team1Name = match.team1?.teamName?.trim() || "Unknown Team";
+    const team2Name = match.team2?.teamName?.trim() || "Unknown Team";
+
     const team1: ProcessedTeam = {
       id: match.team1.teamId,
-      name: match.team1.teamName,
+      name: team1Name,
       logoUrl: logoMap[match.team1.teamName] || match.team1.teamIconUrl || undefined,
     };
     const team2: ProcessedTeam = {
       id: match.team2.teamId,
-      name: match.team2.teamName,
+      name: team2Name,
       logoUrl: logoMap[match.team2.teamName] || match.team2.teamIconUrl || undefined,
     };
     
@@ -62,27 +65,29 @@ async function getMatchDataWithLogos(): Promise<MatchData[]> {
         };
     }
 
+    // Goals are mapped directly from the specific OpenLigaDBMatch object (match.goals),
+    // ensuring they are only for this particular match.
+    const goals = match.goals.map(g => ({
+      scoreTeam1: g.scoreTeam1,
+      scoreTeam2: g.scoreTeam2,
+      goalGetterName: g.goalGetterName?.trim() || "Unknown Player",
+      matchMinute: g.matchMinute, // Already number | null
+      comment: g.comment?.trim() || undefined, // Trim comment, set to undefined if empty or only whitespace
+    })).sort((a,b) => (a.matchMinute || 0) - (b.matchMinute || 0));
+
     return {
       id: match.matchID,
       dateTimeUTC: match.matchDateTimeUTC,
       team1,
       team2,
-      leagueName: match.leagueName,
+      leagueName: match.leagueName?.trim() || "Unknown League",
       leagueSeason: match.leagueSeason,
-      groupName: match.group?.groupName,
+      groupName: match.group?.groupName?.trim() || undefined,
       isFinished: match.matchIsFinished,
       score,
-      // Goals are mapped directly from the specific OpenLigaDBMatch object (match.goals),
-      // ensuring they are only for this particular match.
-      goals: match.goals.map(g => ({
-        scoreTeam1: g.scoreTeam1,
-        scoreTeam2: g.scoreTeam2,
-        goalGetterName: g.goalGetterName,
-        matchMinute: g.matchMinute,
-        comment: g.comment,
-      })).sort((a,b) => (a.matchMinute || 0) - (b.matchMinute || 0)),
-      locationCity: match.location?.locationCity,
-      locationStadium: match.location?.locationStadium,
+      goals: goals,
+      locationCity: match.location?.locationCity?.trim() || undefined,
+      locationStadium: match.location?.locationStadium?.trim() || undefined,
       numberOfViewers: match.numberOfViewers,
       lastUpdateDateTime: match.lastUpdateDateTime,
     };
