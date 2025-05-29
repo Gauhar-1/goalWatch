@@ -75,6 +75,8 @@ async function getMatchDataWithLogos(): Promise<MatchData[]> {
       comment: g.comment?.trim() || undefined, // Trim comment, set to undefined if empty or only whitespace
     })).sort((a,b) => (a.matchMinute || 0) - (b.matchMinute || 0));
 
+    const processedGroupName = match.group?.groupName?.trim().replace(/^\d+\.\s+/, '').trim();
+
     return {
       id: match.matchID,
       dateTimeUTC: match.matchDateTimeUTC,
@@ -82,7 +84,7 @@ async function getMatchDataWithLogos(): Promise<MatchData[]> {
       team2,
       leagueName: match.leagueName?.trim() || "Unknown League",
       leagueSeason: match.leagueSeason,
-      groupName: match.group?.groupName?.trim() || undefined,
+      groupName: processedGroupName || undefined, // Use processed group name, ensure undefined if empty
       isFinished: match.matchIsFinished,
       score,
       goals: goals,
@@ -142,3 +144,4 @@ export default async function HomePage() {
 }
 
 export const revalidate = 3600; // Revalidate data periodically
+
