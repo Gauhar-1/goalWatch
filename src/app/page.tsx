@@ -30,8 +30,13 @@ async function getMatchDataWithLogos(): Promise<MatchData[]> {
   }, {} as TeamLogoMap);
 
   return rawMatches.map((match: OpenLigaDBMatch): MatchData => {
-    const team1Name = match.team1?.teamName?.trim() || "Unknown Team";
-    const team2Name = match.team2?.teamName?.trim() || "Unknown Team";
+    // Trim and provide fallback for team names
+    let team1Name = match.team1?.teamName?.trim() || "Unknown Team";
+    let team2Name = match.team2?.teamName?.trim() || "Unknown Team";
+
+    // Remove "1. " prefix from team names if it exists
+    team1Name = team1Name.replace(/^1\.\s+/, '').trim();
+    team2Name = team2Name.replace(/^1\.\s+/, '').trim();
 
     const team1: ProcessedTeam = {
       id: match.team1.teamId,
