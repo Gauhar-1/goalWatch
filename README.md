@@ -6,7 +6,7 @@
 
 ## 🚀 Live Demo
 
-[🔗 View Live on vercel Hosting](https://your-app-url.web.app)
+[🔗 https://goal-watch.vercel.app/](https://goal-watch.vercel.app/)
 
 ---
 
