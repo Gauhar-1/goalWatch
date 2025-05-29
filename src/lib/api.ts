@@ -1,5 +1,5 @@
 // src/lib/api.ts
-import type { OpenLigaDBMatch, SportsDBResponse, SportsDBTeam, OpenLigaDBTeam as ApiOpenLigaDBTeam, AvailableLeague, OpenLigaDBMatchResult, OpenLigaDBGroupInfo } from '@/types';
+import type { OpenLigaDBMatch, SportsDBResponse, SportsDBTeam, OpenLigaDBTeam as ApiOpenLigaDBTeam, AvailableLeague, OpenLigaDBMatchResult, OpenLigaDBGroupInfo, OpenLigaDBLocation } from '@/types';
 
 // --- Mock Data ---
 interface MockTeamInfo {
@@ -155,13 +155,9 @@ export async function fetchPremierLeagueMatches(): Promise<OpenLigaDBMatch[]> {
 
 
 export async function fetchTeamLogo(teamName: string): Promise<string | undefined> {
-  // Note: This function currently re-fetches match data for a specific league/season/round
-  // to find a single team's logo. If called in a loop (e.g., for all unique teams in a match list),
-  // this can be very inefficient (N+1 problem).
-  // Consider refactoring to use already fetched match data or a more targeted team API if available.
+ 
   console.log(`Fetching logo for team: ${teamName} via OpenLigaDB match data`);
-  
-  // Using the same hardcoded league/season/round as in page.tsx for consistency in this example
+
   const matches = await fetchSpecificLeagueRoundMatches("bl1", "2023", 15); 
   
   if (!matches || matches.length === 0) {
@@ -169,8 +165,6 @@ export async function fetchTeamLogo(teamName: string): Promise<string | undefine
     return undefined;
   }
 
-  // Artificial delay, can be removed if not needed for simulating network latency
-  // await new Promise(resolve => setTimeout(resolve, 100)); 
 
   const teamInfo = matches
     .flatMap(match => [match.team1, match.team2])
@@ -216,14 +210,7 @@ export async function fetchSpecificLeagueRoundMatches(
   groupOrderID: number
 ): Promise<OpenLigaDBMatch[]> {
   try {
-    // For development and to avoid hitting the API too often, you might want to switch to mock data here too.
-    // For now, it makes a live call as per previous setup.
-    // if (leagueShortcut === "bl1" && season === "2023" && groupOrderID === 15) {
-    //   console.log("fetchSpecificLeagueRoundMatches returning MOCK data for bl1/2023/15");
-    //   return Promise.resolve(JSON.parse(JSON.stringify(mockMatches)));
-    // }
-
-    const response = await fetch(`${OPENLIGADB_API_BASE}/getmatchdata/${leagueShortcut}/${season}/${groupOrderID}`);
+   const response = await fetch(`${OPENLIGADB_API_BASE}/getmatchdata/${leagueShortcut}/${season}/${groupOrderID}`);
     if (!response.ok) {
       console.error(`Error fetching specific league round matches (${leagueShortcut}/${season}/${groupOrderID}): ${response.status} ${response.statusText}`);
       return []; 

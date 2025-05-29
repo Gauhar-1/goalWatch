@@ -1,4 +1,3 @@
-// src/components/MatchList.tsx
 "use client";
 
 import type { MatchData } from '@/types';
