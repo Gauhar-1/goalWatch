@@ -69,3 +69,17 @@ export interface MatchData {
 export interface TeamLogoMap {
   [teamName: string]: string | undefined;
 }
+
+// Types for Available Leagues API
+export interface SportInfo {
+  sportId: number;
+  sportName: string;
+}
+
+export interface AvailableLeague {
+  leagueId: number;
+  leagueName: string;
+  leagueShortcut: string;
+  leagueSeason: string;
+  sport: SportInfo;
+}

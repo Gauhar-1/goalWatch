@@ -1,5 +1,5 @@
 // src/lib/api.ts
-import type { OpenLigaDBMatch, SportsDBResponse, SportsDBTeam, OpenLigaDBTeam as ApiOpenLigaDBTeam } from '@/types';
+import type { OpenLigaDBMatch, SportsDBResponse, SportsDBTeam, OpenLigaDBTeam as ApiOpenLigaDBTeam, AvailableLeague } from '@/types';
 
 // --- Mock Data ---
 interface MockTeamInfo {
@@ -88,7 +88,7 @@ const mockMatches: OpenLigaDBMatch[] = [
 ];
 // --- End Mock Data ---
 
-// const OPENLIGADB_API_BASE = 'https://api.openligadb.de';
+const OPENLIGADB_API_BASE = 'https://api.openligadb.de';
 // const SPORTSDB_API_BASE = 'https://www.thesportsdb.com/api/v1/json/3'; // Using test API key "3"
 
 export async function fetchPremierLeagueMatches(): Promise<OpenLigaDBMatch[]> {
@@ -116,4 +116,22 @@ export async function fetchTeamLogo(teamName: string): Promise<string | undefine
   
   console.warn(`Mock logo not found for team: ${teamName}, returning generic placeholder.`);
   return Promise.resolve("https://placehold.co/64x64.png"); 
+}
+
+export async function fetchAvailableLeagues(): Promise<AvailableLeague[]> {
+  try {
+    const response = await fetch(`${OPENLIGADB_API_BASE}/getavailableleagues`);
+    if (!response.ok) {
+      console.error(`Error fetching available leagues: ${response.status} ${response.statusText}`);
+      // Consider throwing an error or returning a specific error object/empty array
+      // For now, returning empty array to prevent breaking UI if caller expects an array
+      return []; 
+    }
+    const data: AvailableLeague[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch available leagues:", error);
+    // Depending on error handling strategy, re-throw, return empty array, or a custom error object
+    return [];
+  }
 }
