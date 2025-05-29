@@ -1,13 +1,13 @@
 // src/lib/api.ts
-import type { OpenLigaDBMatch, SportsDBResponse, SportsDBTeam, OpenLigaDBTeam as ApiOpenLigaDBTeam, AvailableLeague } from '@/types';
+import type { OpenLigaDBMatch, SportsDBResponse, SportsDBTeam, OpenLigaDBTeam as ApiOpenLigaDBTeam, AvailableLeague, OpenLigaDBMatchResult, OpenLigaDBGroupInfo } from '@/types';
 
 // --- Mock Data ---
 interface MockTeamInfo {
   id: number;
   name: string;
   shortName: string;
-  logo: string; // Using direct logo URL for mock
-  apiTeamIconUrl: string; // for teamIconUrl field
+  logo: string; 
+  apiTeamIconUrl: string;
 }
 
 const mockTeamData: { [key: string]: MockTeamInfo } = {
@@ -26,81 +26,129 @@ const createMockApiTeam = (teamInfo: MockTeamInfo): ApiOpenLigaDBTeam => ({
   teamName: teamInfo.name,
   shortName: teamInfo.shortName,
   teamIconUrl: teamInfo.apiTeamIconUrl,
+  teamGroupName: null, // Added as per new schema
 });
+
+const defaultGroupInfo: OpenLigaDBGroupInfo = {
+  groupName: "Premier League Mock Group",
+  groupOrderID: 1,
+  groupID: 1000,
+};
+
+const currentYear = new Date().getFullYear();
 
 const mockMatches: OpenLigaDBMatch[] = [
   {
     matchID: 101,
-    matchDateTimeUTC: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // Upcoming in 2 hours
+    matchDateTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toLocaleString('sv-SE', { timeZone: 'Europe/Berlin' }).replace(' ', 'T'), // Local time for display
+    timeZoneID: "W. Europe Standard Time", // Example timezone
+    leagueId: 468, // Mock Premier League ID
+    leagueName: "Premier League (Mock Data)",
+    leagueSeason: currentYear, 
+    leagueShortcut: "gb1mock", // Mock shortcut
+    matchDateTimeUTC: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+    group: defaultGroupInfo,
     team1: createMockApiTeam(mockTeamData["Arsenal FC"]),
     team2: createMockApiTeam(mockTeamData["Manchester City"]),
-    leagueName: "Premier League (Mock Data)",
+    lastUpdateDateTime: new Date().toISOString(),
     matchIsFinished: false,
     matchResults: [],
     goals: [],
+    location: null,
+    numberOfViewers: null,
   },
   {
     matchID: 102,
-    matchDateTimeUTC: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // Finished 2 days ago
+    matchDateTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toLocaleString('sv-SE', { timeZone: 'Europe/Berlin' }).replace(' ', 'T'),
+    timeZoneID: "W. Europe Standard Time",
+    leagueId: 468,
+    leagueName: "Premier League (Mock Data)",
+    leagueSeason: currentYear,
+    leagueShortcut: "gb1mock",
+    matchDateTimeUTC: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    group: defaultGroupInfo,
     team1: createMockApiTeam(mockTeamData["Liverpool FC"]),
     team2: createMockApiTeam(mockTeamData["Chelsea FC"]),
-    leagueName: "Premier League (Mock Data)",
+    lastUpdateDateTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(), // Finished 2 hours after start
     matchIsFinished: true,
-    matchResults: [{ pointsTeam1: 2, pointsTeam2: 1, resultName: "Endergebnis" }],
+    matchResults: [{ 
+      resultID: 201, 
+      pointsTeam1: 2, 
+      pointsTeam2: 1, 
+      resultName: "Endergebnis", 
+      resultOrderID: 1, 
+      resultTypeID: 2, // Standard game result type from OpenLigaDB
+      resultDescription: "Result after 90 minutes" 
+    }],
     goals: [
-      { scoreTeam1: 1, scoreTeam2: 0, goalGetterName: "L. Diaz (LIV)", matchMinute: 25 },
-      { scoreTeam1: 1, scoreTeam2: 1, goalGetterName: "C. Palmer (CHE)", matchMinute: 55 },
-      { scoreTeam1: 2, scoreTeam2: 1, goalGetterName: "M. Salah (LIV)", matchMinute: 78 },
+      { goalID: 301, scoreTeam1: 1, scoreTeam2: 0, goalGetterName: "L. Diaz (LIV)", matchMinute: 25 },
+      { goalID: 302, scoreTeam1: 1, scoreTeam2: 1, goalGetterName: "C. Palmer (CHE)", matchMinute: 55 },
+      { goalID: 303, scoreTeam1: 2, scoreTeam2: 1, goalGetterName: "M. Salah (LIV)", matchMinute: 78 },
     ],
+    location: null,
+    numberOfViewers: 55000,
   },
   {
     matchID: 103,
-    matchDateTimeUTC: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // Live, started 30 mins ago
+    matchDateTime: new Date(Date.now() - 30 * 60 * 1000).toLocaleString('sv-SE', { timeZone: 'Europe/Berlin' }).replace(' ', 'T'),
+    timeZoneID: "W. Europe Standard Time",
+    leagueId: 468,
+    leagueName: "Premier League (Mock Data)",
+    leagueSeason: currentYear,
+    leagueShortcut: "gb1mock",
+    matchDateTimeUTC: new Date(Date.now() - 30 * 60 * 1000).toISOString(), 
+    group: defaultGroupInfo,
     team1: createMockApiTeam(mockTeamData["Manchester United"]),
     team2: createMockApiTeam(mockTeamData["Tottenham Hotspur"]),
-    leagueName: "Premier League (Mock Data)",
-    matchIsFinished: false,
-    matchResults: [{ pointsTeam1: 1, pointsTeam2: 0, resultName: "Halbzeit" }], // Example: current score
+    lastUpdateDateTime: new Date().toISOString(),
+    matchIsFinished: false, 
+    matchResults: [{ 
+      resultID: 202, 
+      pointsTeam1: 1, 
+      pointsTeam2: 0, 
+      resultName: "Halbzeit", 
+      resultOrderID: 1, 
+      resultTypeID: 1, // halftime result type
+      resultDescription: "Result at halftime"
+    }],
     goals: [
-      { scoreTeam1: 1, scoreTeam2: 0, goalGetterName: "M. Rashford (MUN)", matchMinute: 15 },
+      { goalID: 304, scoreTeam1: 1, scoreTeam2: 0, goalGetterName: "M. Rashford (MUN)", matchMinute: 15 },
     ],
+    location: { locationCity: "Manchester", locationStadium: "Old Trafford (Mock)"},
+    numberOfViewers: 70000,
   },
   {
     matchID: 104,
-    matchDateTimeUTC: new Date(Date.now() + 26 * 60 * 60 * 1000).toISOString(), // Upcoming tomorrow
+    matchDateTime: new Date(Date.now() + 26 * 60 * 60 * 1000).toLocaleString('sv-SE', { timeZone: 'Europe/Berlin' }).replace(' ', 'T'),
+    timeZoneID: "W. Europe Standard Time",
+    leagueId: 468,
+    leagueName: "Premier League (Mock Data)",
+    leagueSeason: currentYear,
+    leagueShortcut: "gb1mock",
+    matchDateTimeUTC: new Date(Date.now() + 26 * 60 * 60 * 1000).toISOString(),
+    group: defaultGroupInfo,
     team1: createMockApiTeam(mockTeamData["Newcastle United"]),
     team2: createMockApiTeam(mockTeamData["Aston Villa"]),
-    leagueName: "Premier League (Mock Data)",
+    lastUpdateDateTime: new Date().toISOString(),
     matchIsFinished: false,
     matchResults: [],
     goals: [],
-  },
-  {
-    matchID: 105,
-    matchDateTimeUTC: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // Upcoming in 3 days
-    team1: createMockApiTeam(mockTeamData["Arsenal FC"]),
-    team2: createMockApiTeam(mockTeamData["Liverpool FC"]),
-    leagueName: "Premier League (Mock Data)",
-    matchIsFinished: false,
-    matchResults: [],
-    goals: [],
+    location: null,
+    numberOfViewers: null,
   },
 ];
 // --- End Mock Data ---
 
 const OPENLIGADB_API_BASE = 'https://api.openligadb.de';
-// const SPORTSDB_API_BASE = 'https://www.thesportsdb.com/api/v1/json/3'; // Using test API key "3"
 
 export async function fetchPremierLeagueMatches(): Promise<OpenLigaDBMatch[]> {
-  console.log("Using MOCK data for fetchPremierLeagueMatches");
-  // Simulate API delay
+  console.log("Using MOCK data for fetchPremierLeagueMatches with updated schema");
   await new Promise(resolve => setTimeout(resolve, 500));
-  return Promise.resolve([...mockMatches]); // Return a copy
+  return Promise.resolve(JSON.parse(JSON.stringify(mockMatches))); // Return a deep copy
 }
 
 export async function fetchTeamLogo(teamName: string): Promise<string | undefined> {
   console.log(`Using MOCK data for fetchTeamLogo: ${teamName}`);
-  // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 100));
   const foundTeam = Object.values(mockTeamData).find(
     team => team.name.toLowerCase() === teamName.toLowerCase() || team.shortName.toLowerCase() === teamName.toLowerCase()
@@ -108,7 +156,7 @@ export async function fetchTeamLogo(teamName: string): Promise<string | undefine
   if (foundTeam) {
     return Promise.resolve(foundTeam.logo);
   }
-  // Fallback if teamName is not in our detailed mockTeamData but might exist in mockMatches team objects
+  
   const teamFromMatches = mockMatches.flatMap(m => [m.team1, m.team2]).find(t => t.teamName === teamName);
   if (teamFromMatches && teamFromMatches.teamIconUrl) {
      return Promise.resolve(teamFromMatches.teamIconUrl);
@@ -123,14 +171,40 @@ export async function fetchAvailableLeagues(): Promise<AvailableLeague[]> {
     const response = await fetch(`${OPENLIGADB_API_BASE}/getavailableleagues`);
     if (!response.ok) {
       console.error(`Error fetching available leagues: ${response.status} ${response.statusText}`);
-      // Consider throwing an error or returning a specific error object/empty array
-      // For now, returning empty array to prevent breaking UI if caller expects an array
       return []; 
     }
     const data: AvailableLeague[] = await response.json();
     return data;
   } catch (error) {
     console.error("Failed to fetch available leagues:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetches match data for a specific league, season, and group/round.
+ * Example: fetchSpecificLeagueRoundMatches("bl1", "2023", 15) for Bundesliga 2023/2024, 15th matchday.
+ * @param leagueShortcut The shortcut for the league (e.g., "bl1", "gb1").
+ * @param season The season year (e.g., "2023" for 2023/2024 season).
+ * @param groupOrderID The matchday or round number.
+ * @returns A promise that resolves to an array of OpenLigaDBMatch objects.
+ */
+export async function fetchSpecificLeagueRoundMatches(
+  leagueShortcut: string, 
+  season: string, // Season year string, e.g., "2023"
+  groupOrderID: number
+): Promise<OpenLigaDBMatch[]> {
+  try {
+    const response = await fetch(`${OPENLIGADB_API_BASE}/getmatchdata/${leagueShortcut}/${season}/${groupOrderID}`);
+    if (!response.ok) {
+      console.error(`Error fetching specific league round matches (${leagueShortcut}/${season}/${groupOrderID}): ${response.status} ${response.statusText}`);
+      // Consider throwing an error or returning a specific error object/empty array
+      return []; 
+    }
+    const data: OpenLigaDBMatch[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Failed to fetch specific league round matches (${leagueShortcut}/${season}/${groupOrderID}):`, error);
     // Depending on error handling strategy, re-throw, return empty array, or a custom error object
     return [];
   }

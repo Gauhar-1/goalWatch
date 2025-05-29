@@ -1,31 +1,66 @@
 // src/types/index.ts
 
-// Simplified types for OpenLigaDB API
+// New interface for Group Information within a match
+export interface OpenLigaDBGroupInfo {
+  groupName: string;
+  groupOrderID: number;
+  groupID: number;
+}
+
+// Updated interface for Match Results within a match
+export interface OpenLigaDBMatchResult {
+  resultID: number;
+  resultName: string; // e.g., "Endergebnis", "Halbzeit"
+  pointsTeam1: number;
+  pointsTeam2: number;
+  resultOrderID: number;
+  resultTypeID: number;
+  resultDescription: string;
+}
+
+// Interface for Location (can be null)
+export interface OpenLigaDBLocation {
+  locationID?: number;
+  locationCity?: string;
+  locationStadium?: string;
+  // Add other fields if known and needed
+}
+
+// Updated types for OpenLigaDB API Team
 export interface OpenLigaDBTeam {
   teamId: number;
   teamName: string;
   shortName: string;
-  teamIconUrl: string | null; // This is often not a good quality logo
+  teamIconUrl: string | null;
+  teamGroupName: string | null; // New field
 }
 
+// Updated types for OpenLigaDB API Match
 export interface OpenLigaDBMatch {
   matchID: number;
-  matchDateTimeUTC: string;
+  matchDateTime: string; // Specific datetime string from API
+  timeZoneID: string; // e.g., "W. Europe Standard Time"
+  leagueId: number;
+  leagueName: string;
+  leagueSeason: number; // Season year, e.g., 2023
+  leagueShortcut: string; // e.g., "bl1", "gb1"
+  matchDateTimeUTC: string; // ISO string for UTC date/time
+  group: OpenLigaDBGroupInfo;
   team1: OpenLigaDBTeam;
   team2: OpenLigaDBTeam;
-  leagueName: string;
+  lastUpdateDateTime: string; // ISO string
   matchIsFinished: boolean;
-  matchResults: {
-    pointsTeam1: number;
-    pointsTeam2: number;
-    resultName: string; // e.g., "Endergebnis"
-  }[];
+  matchResults: OpenLigaDBMatchResult[];
   goals: {
+    goalID?: number; // Optional, not always present
     scoreTeam1: number;
     scoreTeam2: number;
     goalGetterName: string;
     matchMinute: number | null;
+    comment?: string; // Optional
   }[];
+  location: OpenLigaDBLocation | null;
+  numberOfViewers: number | null;
 }
 
 // Types for TheSportsDB API
@@ -44,7 +79,7 @@ export interface SportsDBResponse {
 export interface ProcessedTeam {
   id: number;
   name: string;
-  logoUrl?: string; // Will be populated from TheSportsDB
+  logoUrl?: string; // Will be populated from TheSportsDB or teamIconUrl
 }
 
 export interface MatchData {
@@ -80,6 +115,6 @@ export interface AvailableLeague {
   leagueId: number;
   leagueName: string;
   leagueShortcut: string;
-  leagueSeason: string;
+  leagueSeason: string; // Note: This is string from /getavailableleagues
   sport: SportInfo;
 }
