@@ -14,6 +14,7 @@ async function getMatchDataWithLogos(): Promise<MatchData[]> {
 
   const uniqueTeamNames = new Set<string>();
   rawMatches.forEach(match => {
+    // Ensure team1 and team2 objects and their teamName properties exist before adding
     if (match.team1?.teamName) uniqueTeamNames.add(match.team1.teamName);
     if (match.team2?.teamName) uniqueTeamNames.add(match.team2.teamName);
   });
@@ -44,20 +45,28 @@ async function getMatchDataWithLogos(): Promise<MatchData[]> {
     };
     
     let score;
-    const currentResult = match.matchResults.find(r => r.resultName === "Halbzeit" || r.resultName === "Zwischenstand");
-    const finalResult = match.matchResults.find(r => r.resultName === "Endergebnis" || match.matchIsFinished);
+    // Prioritize final result if match is finished
+    const finalResult = match.matchIsFinished 
+      ? match.matchResults.find(r => r.resultName === "Endergebnis") 
+      : undefined;
 
-    if (match.matchIsFinished && finalResult) {
+    // If not finished or no "Endergebnis", try to find current/halftime result
+    const currentResult = !finalResult 
+      ? match.matchResults.find(r => r.resultName === "Halbzeit" || r.resultName === "Zwischenstand")
+      : undefined;
+
+    if (finalResult) {
       score = {
         team1: finalResult.pointsTeam1,
         team2: finalResult.pointsTeam2,
       };
-    } else if (!match.matchIsFinished && currentResult) {
+    } else if (currentResult) {
        score = {
         team1: currentResult.pointsTeam1,
         team2: currentResult.pointsTeam2,
       };
     } else if (match.goals.length > 0) { 
+        // Fallback to last goal score if no explicit result object is suitable
         const lastGoal = match.goals[match.goals.length - 1];
         score = {
             team1: lastGoal.scoreTeam1,
@@ -75,19 +84,25 @@ async function getMatchDataWithLogos(): Promise<MatchData[]> {
       comment: g.comment?.trim() || undefined, // Trim comment, set to undefined if empty or only whitespace
     })).sort((a,b) => (a.matchMinute || 0) - (b.matchMinute || 0));
 
+    // Process groupName: trim, remove leading number. (e.g., "15. Spieltag" -> "Spieltag")
     const processedGroupName = match.group?.groupName?.trim().replace(/^\d+\.\s+/, '').trim();
+
+    // Process leagueName: trim, remove leading "1. " prefix specifically.
+    let processedLeagueName = match.leagueName?.trim() || "Unknown League";
+    processedLeagueName = processedLeagueName.replace(/^1\.\s+/, '').trim();
+
 
     return {
       id: match.matchID,
       dateTimeUTC: match.matchDateTimeUTC,
       team1,
       team2,
-      leagueName: match.leagueName?.trim() || "Unknown League",
-      leagueSeason: match.leagueSeason,
+      leagueName: processedLeagueName,
+      leagueSeason: match.leagueSeason, // This is a number
       groupName: processedGroupName || undefined, // Use processed group name, ensure undefined if empty
       isFinished: match.matchIsFinished,
       score,
-      goals: goals,
+      goals: goals, // This ensures only goals for this match are passed
       locationCity: match.location?.locationCity?.trim() || undefined,
       locationStadium: match.location?.locationStadium?.trim() || undefined,
       numberOfViewers: match.numberOfViewers,
