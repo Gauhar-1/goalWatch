@@ -128,3 +128,4 @@ export interface AvailableLeague {
   leagueSeason: string; // Note: This is string from /getavailableleagues
   sport: SportInfo;
 }
+

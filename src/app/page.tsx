@@ -1,13 +1,13 @@
 // src/app/page.tsx
 import AppHeader from '@/components/AppHeader';
 import MatchList from '@/components/MatchList';
-import { fetchPremierLeagueMatches, fetchTeamLogo } from '@/lib/api';
+import { fetchSpecificLeagueRoundMatches, fetchTeamLogo } from '@/lib/api';
 import type { MatchData, OpenLigaDBMatch, ProcessedTeam, TeamLogoMap, GoalData } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, CalendarX2 } from "lucide-react";
 
 async function getMatchDataWithLogos(): Promise<MatchData[]> {
-  const rawMatches = await fetchPremierLeagueMatches();
+  const rawMatches = await fetchSpecificLeagueRoundMatches("bl1", "2023",15);
   if (!rawMatches || rawMatches.length === 0) {
     return [];
   }
