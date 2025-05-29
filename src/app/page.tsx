@@ -72,6 +72,8 @@ async function getMatchDataWithLogos(): Promise<MatchData[]> {
       groupName: match.group?.groupName,
       isFinished: match.matchIsFinished,
       score,
+      // Goals are mapped directly from the specific OpenLigaDBMatch object (match.goals),
+      // ensuring they are only for this particular match.
       goals: match.goals.map(g => ({
         scoreTeam1: g.scoreTeam1,
         scoreTeam2: g.scoreTeam2,

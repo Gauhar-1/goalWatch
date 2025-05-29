@@ -10,7 +10,7 @@ import { Separator } from './ui/separator';
 import { ScrollArea } from './ui/scroll-area';
 import { useEffect, useState } from 'react';
 import { format, formatDistanceToNowStrict } from 'date-fns';
-import { cn } from '@/lib/utils'; // Added missing import
+import { cn } from '@/lib/utils';
 
 interface MatchCardProps {
   match: MatchData;
@@ -141,6 +141,8 @@ export default function MatchCard({ match }: MatchCardProps) {
             <DetailItem icon={Users} value={match.numberOfViewers?.toLocaleString() ?? 'N/A'} />
         </div>
 
+        {/* The 'match.goals' array is already filtered to contain only goals for this specific match 
+            during the data processing stage (e.g., in getMatchDataWithLogos). */}
         {match.goals && match.goals.length > 0 && (
           <div className="pt-2">
             <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-1.5">Goal Scorers:</h4>
